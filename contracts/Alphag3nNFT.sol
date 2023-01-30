@@ -10,8 +10,14 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 contract Alphag3nNFT is ERC721URIStorage, Ownable {
     uint256 public tokenCount = 0;
 
-    enum  Rank {None, Purple, Silver, Gold, Platinum}
-    
+    enum Rank {
+        None,
+        Purple,
+        Bronze,
+        Silver,
+        Gold,
+        Diamond
+    }
 
     struct User {
         Rank rank;
@@ -24,31 +30,35 @@ contract Alphag3nNFT is ERC721URIStorage, Ownable {
 
     mapping(Rank => uint256) private costs;
 
-
     constructor() ERC721("Alphag3nNFT", "G3N") {
         tokenCount = 0;
         costs[Rank.Purple] = 0;
-        costs[Rank.Silver] = 1 ether / 200;
-        costs[Rank.Gold] = 8 ether / 1000;
-        costs[Rank.Platinum] = 1 ether / 100;
+        costs[Rank.Bronze] = 3 ether / 1000;
+        costs[Rank.Silver] = 5 ether / 200;
+
         admins[msg.sender] = true;
     }
-   
 
     function totalSupply() public view returns (uint256) {
         return tokenCount;
     }
 
-    function mintToken(string memory tokenURI, Rank level) 
-        public
-        payable
-        returns (uint256)
-    {   
-        if (!admins[msg.sender]) {
-           require(msg.value > costs[level], "cost requirement not met");    
-        }
-        if (level > Rank.Platinum) {
+    function mintToken(
+        string memory tokenURI,
+        Rank level,
+        bool isGraduated
+    ) public payable returns (uint256) {
+        if (level > Rank.Diamond) {
             revert("Unknown rank");
+        }
+        if (level == Rank.Diamond) {
+            require(admins[msg.sender], "Diamond reserved for admins");
+        }
+        if (level == Rank.Gold) {
+            require(isGraduated, "Gold is only for alumni");
+        }
+        if (!admins[msg.sender]) {
+            require(msg.value > costs[level], "cost requirement not met");
         }
         uint256 newItemId = tokenCount;
         _mint(msg.sender, newItemId);
@@ -59,26 +69,21 @@ contract Alphag3nNFT is ERC721URIStorage, Ownable {
         _setTokenURI(newItemId, tokenURI);
         tokenCount++;
         payable(owner()).transfer(msg.value);
-    
-        return newItemId;
 
+        return newItemId;
     }
 
-    function getUser(address addr)
-        public 
-        view
-        returns (User memory) 
-    {
+    function getUser(address addr) public view returns (User memory) {
         return users[addr];
     }
 
-    function addAdmin(address addr) public  {
+    function addAdmin(address addr) public {
         require(admins[msg.sender], "need to be an admin to add admin");
         admins[addr] = true;
     }
 
-    function setCost(Rank rank, uint256 newCost) public  {
-          require(admins[msg.sender], "need to be an admin to set cost");
+    function setCost(Rank rank, uint256 newCost) public {
+        require(admins[msg.sender], "need to be an admin to set cost");
         costs[rank] = newCost;
     }
- }
+}
