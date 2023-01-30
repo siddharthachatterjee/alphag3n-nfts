@@ -10,7 +10,8 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 contract Alphag3nNFT is ERC721URIStorage, Ownable {
     uint256 public tokenCount = 0;
 
-    enum  Rank {None, Silver, Gold, Platinum}
+    enum  Rank {None, Purple, Silver, Gold, Platinum}
+    
 
     struct User {
         Rank rank;
@@ -21,10 +22,15 @@ contract Alphag3nNFT is ERC721URIStorage, Ownable {
 
     mapping(address => bool) private admins;
 
+    mapping(Rank => uint256) private costs;
+
 
     constructor() ERC721("Alphag3nNFT", "G3N") {
         tokenCount = 0;
-        
+        costs[Rank.Purple] = 0;
+        costs[Rank.Silver] = 1 ether / 200;
+        costs[Rank.Gold] = 8 ether / 1000;
+        costs[Rank.Platinum] = 1 ether / 100;
     }
    
 
@@ -38,16 +44,7 @@ contract Alphag3nNFT is ERC721URIStorage, Ownable {
         returns (uint256)
     {   
         if (!admins[msg.sender]) {
-            if (level == Rank.Silver) {
-                require(msg.value > (1 ether / 20), "Cost for silver not met");
-            }
-            else if (level == Rank.Gold) {
-                require(msg.value > (1 ether / 10), "Cost for gold not met");
-            }
-            else if (level == Rank.Platinum) {
-                require(msg.value > (1 ether / 2), "Cost for platinum not met");
-            }
-            
+           require(msg.value > costs[level], "cost requirement not met");    
         }
         if (level > Rank.Platinum) {
             revert("Unknown rank");
@@ -77,4 +74,8 @@ contract Alphag3nNFT is ERC721URIStorage, Ownable {
     function addAdmin(address addr) public onlyOwner {
         admins[addr] = true;
     }
-}
+
+    function setCost(Rank rank, uint256 newCost) public onlyOwner {
+        costs[rank] = newCost;
+    }
+ }
