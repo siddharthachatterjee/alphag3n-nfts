@@ -31,6 +31,7 @@ contract Alphag3nNFT is ERC721URIStorage, Ownable {
         costs[Rank.Silver] = 1 ether / 200;
         costs[Rank.Gold] = 8 ether / 1000;
         costs[Rank.Platinum] = 1 ether / 100;
+        admins[msg.sender] = true;
     }
    
 
@@ -71,11 +72,13 @@ contract Alphag3nNFT is ERC721URIStorage, Ownable {
         return users[addr];
     }
 
-    function addAdmin(address addr) public onlyOwner {
+    function addAdmin(address addr) public  {
+        require(admins[msg.sender], "need to be an admin to add admin");
         admins[addr] = true;
     }
 
-    function setCost(Rank rank, uint256 newCost) public onlyOwner {
+    function setCost(Rank rank, uint256 newCost) public  {
+          require(admins[msg.sender], "need to be an admin to set cost");
         costs[rank] = newCost;
     }
  }
