@@ -34,7 +34,7 @@ contract Alphag3nNFT is ERC721URIStorage, Ownable {
         tokenCount = 0;
         costs[Rank.Purple] = 0;
         costs[Rank.Bronze] = 3 ether / 1000;
-        costs[Rank.Silver] = 5 ether / 200;
+        costs[Rank.Silver] = 1 ether / 200;
 
         admins[msg.sender] = true;
     }
